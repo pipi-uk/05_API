@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" href="css/style.css">
+  <!-- ここから地図 -->
+  <title>addcustominfoboxHTML</title>
+  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'/>
+  <style type='text/css'>body{margin:0;padding:0;overflow:hidden;font-family:'Segoe UI',Helvetica,Arial,Sans-Serif}</style>
+    <!-- ここまで地図 -->
+  </script>
+</head>
+<body>
+
+  <h1>お店メモ</h1>
+  <div>
+    <input  id="myTitle" type="text" placeholder="お店名を入力（myTitle）">
+  </div>
+  <div>
+    <input  id="myDescription" type="text" placeholder="メモを入力（myDescripton）">
+  </div>
+    <button id="send">保存</button>
+  </div>
+
+  
+
+ <!-- MapArea -->
+ <div id='printoutPanel'></div>
+        
+ <div id='myMap' style='width: 100vw; height: 100vh;'></div>
+ <script type='text/javascript'>
+     function loadMapScenario() {
+         var map = new Microsoft.Maps.Map(document.getElementById('myMap'), {
+             /* No need to set credentials if already passed in URL */
+             center: new Microsoft.Maps.Location(47.60357, -122.32945)
+         });
+         var center = map.getCenter();
+         var infoboxTemplate = '<div id="infoboxText" style="background-color:White; border-style:solid; border-width:medium; border-color:DarkOrange; min-height:100px; width: 240px;">' +
+             '<b id="infoboxTitle" style="position: absolute; top: 10px; left: 10px; width: 220px;">{title}</b>' +
+             '<a id="infoboxDescription" style="position: absolute; top: 30px; left: 10px; width: 220px;">{description}</a></div>';
+         var infobox = new Microsoft.Maps.Infobox(center, { htmlContent: infoboxTemplate.replace('{title}', 'myTitle').replace('{description}', 'myDescription') });
+         infobox.setMap(map);
+         
+         // Firebaseからデータを取得
+          onValue(ref(db, 'data'), (snapshot) => {
+          const data = snapshot.val();
+          if (data) {
+            updateInfobox(data.myTitle, data.myDescription);
+            }
+          });
+
+        // インフォボックスを更新する関数
+        function updateInfobox(title, description) {
+          if (map && infobox) { // 'map' と 'infobox' が初期化されていることを確認
+            const infoboxTemplate = '<div id="infoboxText" style="background-color:White; border-style:solid; border-width:medium; border-color:DarkOrange; min-height:100px; width: 240px;">' +
+              '<b id="infoboxTitle" style="position: absolute; top: 10px; left: 10px; width: 220px;">{title}</b>' +
+              '<a id="infoboxDescription" style="position: absolute; top: 30px; left: 10px; width: 220px;">{description}</a></div>';
+
+            // テンプレートをデータで置き換える
+            const infoboxContent = infoboxTemplate.replace('{title}', title).replace('{description}', description);
+            infobox.setOptions({ htmlContent: infoboxContent });
+          }
+        }
+     }
+ </script>
+ <script type='text/javascript' src='https://www.bing.com/api/maps/mapcontrol?key=YourBingMapsKey&callback=loadMapScenario' async defer></script>
+ 
+<script>
+//最初に実行する関数
+function GetMap() {
+  navigator.geolocation.getCurrentPosition(mapsInit, mapsError, set);
+}
+</script>
+
+<script  src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+ <script type="module">
+     // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-app.js";
+    import { getDatabase, ref, push, set, onChildAdded, remove, onChildRemoved,onValue}
+      from "https://www.gstatic.com/firebasejs/9.1.0/firebase-database.js";
+    // Your web app's Firebase configuration
+  const firebaseConfig = {
+
+    // 意図的に上は消す必要がある
+   };
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app); 
+    const dbRef = ref(db,"chat");
+
+    // データ登録(click)
+    $('#send').on('click',function(){
+      const currentDate = new Date();
+      const myTitle = $('#myTitle').val();
+      const myDescription = $('#myDescription').val();
+    
+      set(ref(db, 'data'), {
+        date: currentDate.toString(), // 文字列として保存
+        timestamp: currentDate.getTime() ,// UNIXタイムスタンプとして保存
+        myTitle: myTitle, 
+        myDescription: myDescription,
+          });
+          
+      console.log(myTitle,'myTitleの文字');
+      console.log(myDescription,'myDescriptionの文字');
+    //ここから消さない。。
+     })
+    </script>
+</body>
+</html>
